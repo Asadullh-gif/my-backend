@@ -41,7 +41,7 @@ app.post("/products", upload.single("image"), async (req, res) => {
       description: req.body.description,
       featured: req.body.featured === "true",
       image:
-        "http://localhost:3000/uploads/" + req.file.filename,
+        `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`,
     });
 
     await product.save();
@@ -70,7 +70,7 @@ app.put("/products/:id", upload.single("image"), async (req, res) => {
     // Если загрузили новую картинку
     if (req.file) {
       updateData.image =
-        "http://localhost:3000/uploads/" + req.file.filename;
+        `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
     }
 
     const product = await Product.findByIdAndUpdate(
@@ -112,8 +112,10 @@ app.delete("/products/:id", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("Сервер запущен на порту 3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Сервер запущен на порту ${PORT}`);
 });
 
 
