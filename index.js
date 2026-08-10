@@ -1,11 +1,5 @@
 require("dotenv").config();
 
-const express = require("express");
-const mongoose = require("mongoose");
-const Product = require("./models/product");
-const cors = require("cors");
-const multer = require("multer");
-
 const path = require("path");
 
 const storage = multer.diskStorage({
@@ -18,13 +12,49 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 const app = express();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("MongoDB подключена"))
-  .catch(err => console.log("Ошибка MongoDB:", err));
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "tilestore",
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+  },
+});
+
+const upload = multer({ storage });
+
+const app = express();
+
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+app.use(express.json());
+
+app.use("/uploads", (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Cross-Origin-Resource-Policy", "cross-origin");
+  next();
+});
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 
@@ -40,14 +70,14 @@ app.post("/products", upload.single("image"), async (req, res) => {
       type: req.body.type,
       description: req.body.description,
       featured: req.body.featured === "true",
-      image:
-        `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`,
+      image: req.file ? req.file.path : "",
     });
 
     await product.save();
 
     res.json(product);
   } catch (err) {
+    console.log(err);
     res.status(500).json({
       message: err.message,
     });
@@ -67,10 +97,9 @@ app.put("/products/:id", upload.single("image"), async (req, res) => {
       featured: req.body.featured === "true",
     };
 
-    // Если загрузили новую картинку
+    // Если выбрана новая картинка — сохраняем её в Cloudinary
     if (req.file) {
-      updateData.image =
-        `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+      updateData.image = req.file.path;
     }
 
     const product = await Product.findByIdAndUpdate(
@@ -81,6 +110,7 @@ app.put("/products/:id", upload.single("image"), async (req, res) => {
 
     res.json(product);
   } catch (err) {
+    console.log(err);
     res.status(500).json({
       message: err.message,
     });
