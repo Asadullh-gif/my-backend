@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const Product = require("./models/Product");
+const Product = require("./models/product");
 const cors = require("cors");
 const multer = require("multer");
 const dotenv = require("dotenv");
@@ -56,9 +56,10 @@ mongoose
 app.post("/products", upload.single("image"), async (req, res) => {
   try {
 
-    console.log("========== NEW PRODUCT ==========");
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
+    console.log("🔥 POST /products ПОЛУЧЕН");
+    console.log("Файл:", req.file);
+    console.log("Body:", req.body);
+
 
 
     const product = new Product({
