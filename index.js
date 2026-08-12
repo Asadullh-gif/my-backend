@@ -7,7 +7,7 @@ const dotenv = require("dotenv");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-dotenv.config();
+require("dotenv").config();
 
 const app = express();
 
