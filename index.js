@@ -55,6 +55,12 @@ mongoose
 
 app.post("/products", upload.single("image"), async (req, res) => {
   try {
+
+    console.log("========== NEW PRODUCT ==========");
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+
+
     const product = new Product({
       name: req.body.name,
       price: req.body.price,
