@@ -33,6 +33,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "tilestore/products",
     allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    resource_type: "image"
   },
 });
 
@@ -74,9 +75,12 @@ app.post("/products", upload.single("image"), async (req, res) => {
 
       // Cloudinary URL
       image: req.file ? req.file.path : "",
+      interiorImage: req.files?.interiorImage?.[0]?.path || "",
     });
 
     await product.save();
+
+    console.log("🔥 Товар успешно добавлен:", product);
 
     res.json(product);
   } catch (err) {
@@ -108,6 +112,10 @@ app.put("/products/:id", upload.single("image"), async (req, res) => {
     // Если загрузили новую картинку
     if (req.file) {
       updateData.image = req.file.path;
+    }
+
+    if (req.files && req.files.interiorImages) {
+      updateData.interiorImage = req.files.interiorImage[0].path;
     }
 
     const product = await Product.findByIdAndUpdate(
